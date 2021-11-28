@@ -1,0 +1,36 @@
+------------------
+New session started at 19:36 - 28 Nov  2021
+-----------------
+Going to load ini file
+-----------------
+ Field 	| Description
+-----------------
+StoreNum	| Store SAP number
+StoreName	| Store SAP Name
+StorePhone	| Store phone number
+StoreAddress	| Store full address
+StoreCity	| Store city
+StoreDirName	| Store Director First&Last name
+StoreDirPhone	| Store Director mobile phone
+StoreDirEmail	| Store Director email address
+StoreTargetData	| Data in which work must be started
+
+-----------------
+Going to create window and it's content
+-----------------
+Total fields 9
+Going to create window field StoreAddress and it's content is Store full address
+Going to create window field StoreCity and it's content is Store city
+Going to create window field StoreDirEmail and it's content is Store Director email address
+Going to create window field StoreDirName and it's content is Store Director First&Last name
+Going to create window field StoreDirPhone and it's content is Store Director mobile phone
+Going to create window field StoreName and it's content is Store SAP Name
+Going to create window field StoreNum and it's content is Store SAP number
+Going to create window field StorePhone and it's content is Store phone number
+Going to create window field StoreTargetData and it's content is Data in which work must be started
+Window creaated
+-----------------
+Going to show window
+-----------------
+Exit
+-----------------
