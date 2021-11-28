@@ -70,24 +70,30 @@ if ($verbose){
 
 $win_main->Show();
 Win32::GUI::Dialog();
-if ($verbose){ print $filehandle "Exit\n-----------------\n";};
+if ($verbose){ print $filehandle "main Exit\n-----------------\n";};
 
 
 
 #subs
 sub Button1_Click { 
+	&readtmpllist;
+	
 	&generate_emails;
 	}
 
 sub Main_Terminate {
-	if ($verbose){ print $filehandle "Exit\n-----------------\n";};
+	if ($verbose){ print $filehandle "Main Terminate Exit\n-----------------\n";};
 	if ($verbose){ close ($filehandle);};
         -1;
     }
+sub readtmpllist {
+	
+}
 
 sub generate_emails {
-	if ($verbose){ print $filehandle "Exit\n-----------------\n";};
+	if ($verbose){ print $filehandle "generate email Exit\n-----------------\n";
 	close ($filehandle);
+	};
 	-1;
 }
 
