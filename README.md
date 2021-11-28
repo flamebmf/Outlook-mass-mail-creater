@@ -1,4 +1,4 @@
-# Template-mail-maker-outlook-
+# mail-maker-from-template-outlook
 <h1>Tools for mass mail creation in outlook and open it for sending</h1>
 <br>
 <h>TODO:</h>
