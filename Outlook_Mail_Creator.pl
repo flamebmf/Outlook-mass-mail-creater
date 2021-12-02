@@ -7,25 +7,33 @@
 use Getopt::Long;
 use Cwd qw(cwd);
 use strict;
+use warnings;
+use Config::Tiny;
 use Win32::GUI();
 use Win32::OLE();
-my $ini_file="OMC.ini";
-my $emailfileslist="email_templates.lst";
-my $inputdata="input.ini";
+#files
+my $config = Config::Tiny->read( "omc.ini", 'utf8' );
+my $ini_file=$config->{files}{fields}; # file with fields and it's describtion
+my $emailfileslist=$config->{files}{emailtemlates};# list of filenames which include mail template
+my $inputdata=$config->{files}{inputdata}; # file with data which must be loaded in fields
+my $adddb_f=$config->{files}{adddb};
+my $log=$config->{files}{log}; # verbose log
+#hashes
 my %emailtmpl;
-my $log="omc.log";
-my $filehandle;
-my $storedb_f="store.db";
 my %storedb;
 my %inidata;
+my %labels;
+# vars
+my $filehandle;
 my $tmp;
 my $label;
 my $itemcount=0;
-my $verbose=0;
+my $verbose=$config->{params}{verbose};
 my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 my @days = qw(Sun Mon Tue Wed Thu Fri Sat Sun);
-GetOptions ('verbose' =>  \$verbose);
+#main
 
+if (!$verbose) {GetOptions ('verbose' =>  \$verbose)};
 (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime();
 $year=$year+1900;
 GetOptions ('verbose' =>  \$verbose);
@@ -41,12 +49,10 @@ if ($verbose){ print $filehandle "\n-----------------\n";};
 my $icon = new Win32::GUI::Icon('omc.ico');
 my $win_main=Win32::GUI::Window->new(
 	-title=>'Outlook Mail Creator',
-	-width=>315,
-	-height => (40*($itemcount+1)+60),
+	-width=>310,
+	-height => (40*($itemcount+1)+40),
 	-icon => $icon,
 	-minimizebox => 0,
-	
-	
 	);
 $win_main->SetIcon($icon);
 #Add readed params from ini file to window
@@ -57,13 +63,13 @@ if ($verbose){
 my $index=0;
 foreach $tmp ( sort keys %inidata) {
 	$win_main->AddLabel(-top =>0+(40*$index),-text => "$tmp",-align =>"center" );
-	if ($verbose){ print $filehandle "Going to create window field $tmp and it's content is $inidata{$tmp}\n";};
-	$label=$win_main->AddTextfield(-align => 'center',-name => "$tmp",-size => [300,20],-pos =>[0,20+(40*$index),]);#-align=> 'left',#-prompt => $inidata{$tmp},
-	$label->Append($inidata{$tmp});
+	if ($verbose){ print $filehandle "Going to create text field $tmp and it's content is $inidata{$tmp}\n";};
+	$labels{$tmp}=$win_main->AddTextfield(-align => 'center',-name => "$tmp",-size => [300,20],-pos =>[0,20+(40*$index),]);#-align=> 'left',#-prompt => $inidata{$tmp},
+	$labels{$tmp}->Append($inidata{$tmp});
 	$index=$index+1;
 };
-
-$win_main->AddButton(-align => 'center',-ok => 1,-pos =>[100,0+(40*$itemcount)],-name=>'Button1',-text=>"Generate Emails",);
+$win_main->AddButton(-align => 'center',-ok => 0,-pos =>[25,0+(40*$itemcount)],-size => [100,20],-name=>'Button2',-text=>"Load Data",);
+$win_main->AddButton(-align => 'center',-ok => 1,-pos =>[175,0+(40*$itemcount)],-size => [100,20],-name=>'Button1',-text=>"Generate Emails",);
 $win_main->Center();
 if ($verbose){
 	print $filehandle "Window creaated\n-----------------\n";
@@ -92,6 +98,29 @@ sub Button1_Click {
 	&generate_emails;
 	}
 
+sub Button2_Click { 
+	my $input_f;
+	my %input_h;
+	if ($verbose){ print $filehandle "Going to load data\n-----------------\n";};
+	if (! open (F_F,'<',"$inputdata")){
+		return 0;
+	} else {
+		foreach $input_f( <F_F> ) {
+			my($name_,$descr_) = split /\t/,$input_f;
+			chomp($name_);
+			chomp($descr_);
+			$input_h{$name_}= $descr_;
+			if ($verbose){ print $filehandle "$name_\t| $descr_\n";};
+			};
+	close(F_F);
+	foreach $tmp (sort keys %labels){
+		if ($verbose){ print $filehandle "Going to load data $input_h{$tmp} to text field $tmp \n";};
+		$labels{$tmp}->SelectAll();
+		$labels{$tmp}->Clear();
+		$labels{$tmp}->Append($input_h{$tmp});
+		}
+	};
+};
 sub Main_Terminate {
 	if ($verbose){ print $filehandle "Main Terminate Exit\n-----------------\n";};
 	if ($verbose){ close ($filehandle);};
