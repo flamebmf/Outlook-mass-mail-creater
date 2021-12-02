@@ -8,8 +8,10 @@ use Getopt::Long;
 use Cwd qw(cwd);
 use strict;
 use Win32::GUI();
+use Win32::OLE();
 my $ini_file="OMC.ini";
 my $emailfileslist="email_templates.lst";
+my $inputdata="input.ini";
 my %emailtmpl;
 my $log="omc.log";
 my $filehandle;
@@ -77,7 +79,16 @@ if ($verbose){ print $filehandle "main Exit\n-----------------\n";};
 #subs
 sub Button1_Click { 
 	&readtmpllist;
-	
+	my $word = Win32::OLE->new('Outlook.Application', 'Quit') or die;
+    $word->{Visible} = 1;
+    my $doc = $word->Documents->Add();
+    my $range = $doc->{Content};
+
+    ### insert some text into the document
+    $range->{Text} = 'Hello World from Monastery.';
+    $range->InsertParagraphAfter();
+    $range->InsertAfter('Bye for now.');
+	$word->Quit();
 	&generate_emails;
 	}
 
