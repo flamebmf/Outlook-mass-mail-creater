@@ -11,6 +11,7 @@ use warnings;
 use Config::Tiny;
 use Win32::GUI();
 use Win32::OLE();
+use Win32::OLE::Const 'Microsoft Outlook';
 #files
 my $config = Config::Tiny->read( "omc.ini", 'utf8' );
 my $ini_file=$config->{files}{fields}; # file with fields and it's describtion
@@ -84,18 +85,54 @@ if ($verbose){ print $filehandle "main Exit\n-----------------\n";};
 
 #subs
 sub Button1_Click { 
-	&readtmpllist;
-	my $word = Win32::OLE->new('Outlook.Application', 'Quit') or die;
-    $word->{Visible} = 1;
-    my $doc = $word->Documents->Add();
-    my $range = $doc->{Content};
+	my $to;
+	my $cc;
+	my $subject;
+	my $body="";
+	my $tmp;
+	my %input_h;
+	
+	if ($verbose){ print $filehandle "Going to read fields\n";};
+	foreach $tmp (sort keys %labels){
+		$input_h{$tmp}=$labels{$tmp}->GetLine(0);
+		if ($verbose){ print $filehandle "readed field $tmp data $input_h{$tmp}\n";};
+		}		
+	if ($verbose){ print $filehandle "\n-----------------\nGoing to read templates\n-----------------\n";};
+	&readtmpllist();
+	my $ol = Win32::OLE->GetActiveObject('Outlook.Application') || Win32::OLE->new('Outlook.Application', 'Quit');
+	foreach $tmp ( sort keys %emailtmpl) {
+		if (! open (T_F,'<',"$emailtmpl{$tmp}")){ 
+		return 0;
+		} else {
+			$to = <T_F>;
+			$cc = <T_F>;
+			$subject = <T_F>;
+			foreach my $line (<T_F>) {
+				$body=$body . $line;
+			};
+			
+		};
+	if ($verbose){ print $filehandle "Going to filter template\n";};
+	foreach $tmp (sort keys %input_h){
+		$subject=~s/$tmp/$input_h{$tmp}/g;
+		$body=~s/$tmp/$input_h{$tmp}/g;
+		if ($verbose){ print $filehandle "filtered field $tmp data $input_h{$tmp}\n";};
+		}			
+	my $email=$ol->CreateItem(0);
+	$email->{'To'}= $to;
+	$email->{'CC'}= $cc;
+	$email->{'Subject'}= $subject;
+	$email->{'BodyFormat'} = 'olFormatHTML';
+	$email->{'HTMLBody'} = $body;
+	$email->save();
+	$email->Display();
+	};
+    $ol->{Visible} = 1;
+    
 
     ### insert some text into the document
-    $range->{Text} = 'Hello World from Monastery.';
-    $range->InsertParagraphAfter();
-    $range->InsertAfter('Bye for now.');
-	$word->Quit();
-	&generate_emails;
+    
+	#&generate_emails;
 	}
 
 sub Button2_Click { 
@@ -127,6 +164,21 @@ sub Main_Terminate {
         -1;
     }
 sub readtmpllist {
+	my $input_f;
+	if (! open (F_F,'<',"$emailfileslist")){
+		return 0;
+	} else {
+		foreach $input_f( <F_F> ) {
+			my($name_,$descr_) = split /\t/,$input_f;
+			chomp($name_);
+			chomp($descr_);
+			$emailtmpl{$name_}= $descr_;
+			if ($verbose){ print $filehandle "$name_\t| $descr_\n";};
+			#print $filehandle "Set in hash $name_ \= $inidata{$name_}\n";
+			$itemcount++;
+			};
+	close(F_F);
+};
 	
 }
 
@@ -134,6 +186,7 @@ sub generate_emails {
 	if ($verbose){ print $filehandle "generate email Exit\n-----------------\n";
 	close ($filehandle);
 	};
+	
 	-1;
 }
 
