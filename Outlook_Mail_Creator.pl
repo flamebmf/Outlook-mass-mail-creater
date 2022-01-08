@@ -1,4 +1,4 @@
-#perl2exe_info FileDescription =Outlook_Mail_Creator
+#perl2exe_info FileDescription =Outlook_Mass_Mail_Creator
 #perl2exe_info FileVersion=1.0
 #perl2exe_info InternalName=Outlook_Mail_Creator.pl
 #perl2exe_info LegalCopyright=Akulich Dmitry akulich.d@gmail.com
@@ -11,7 +11,7 @@ use warnings;
 use Config::Tiny;
 use Win32::GUI();
 use Win32::OLE();
-use Win32::OLE::Const 'Microsoft Outlook';
+#use Win32::OLE::Const 'Microsoft Outlook';
 #files
 my $config = Config::Tiny->read( "omc.ini", 'utf8' );
 my $ini_file=$config->{files}{fields}; # file with fields and it's describtion
@@ -50,7 +50,7 @@ if ($verbose){ print $filehandle "\n-----------------\n";};
 my $icon = new Win32::GUI::Icon('omc.ico');
 my $win_main=Win32::GUI::Window->new(
 	-title=>'Outlook Mail Creator',
-	-width=>310,
+	-width=>316,
 	-height => (40*($itemcount+1)+40),
 	-icon => $icon,
 	-minimizebox => 0,
@@ -62,15 +62,15 @@ if ($verbose){
 	print $filehandle "Total fields $itemcount\n";
 };
 my $index=0;
-foreach $tmp ( sort keys %inidata) {
+foreach $tmp ( keys %inidata) {
 	$win_main->AddLabel(-top =>0+(40*$index),-text => "$tmp",-align =>"center" );
 	if ($verbose){ print $filehandle "Going to create text field $tmp and it's content is $inidata{$tmp}\n";};
-	$labels{$tmp}=$win_main->AddTextfield(-align => 'center',-name => "$tmp",-size => [300,20],-pos =>[0,20+(40*$index),]);#-align=> 'left',#-prompt => $inidata{$tmp},
+	$labels{$tmp}=$win_main->AddTextfield(-align => 'center',-name => "$tmp",-size => [300,20],-pos =>[3,20+(40*$index),]);#-align=> 'left',#-prompt => $inidata{$tmp},
 	$labels{$tmp}->Append($inidata{$tmp});
 	$index=$index+1;
 };
-$win_main->AddButton(-align => 'center',-ok => 0,-pos =>[25,0+(40*$itemcount)],-size => [100,20],-name=>'Button2',-text=>"Load Data",);
-$win_main->AddButton(-align => 'center',-ok => 1,-pos =>[175,0+(40*$itemcount)],-size => [100,20],-name=>'Button1',-text=>"Generate Emails",);
+$win_main->AddButton(-align => 'center',-ok => 0,-pos =>[28,0+(40*$itemcount)],-size => [100,20],-name=>'Button2',-text=>"Load Data",);
+$win_main->AddButton(-align => 'center',-ok => 1,-pos =>[178,0+(40*$itemcount)],-size => [100,20],-name=>'Button1',-text=>"Generate Emails",);
 $win_main->Center();
 if ($verbose){
 	print $filehandle "Window creaated\n-----------------\n";
@@ -101,22 +101,27 @@ sub Button1_Click {
 	&readtmpllist();
 	my $ol = Win32::OLE->GetActiveObject('Outlook.Application') || Win32::OLE->new('Outlook.Application', 'Quit');
 	foreach $tmp ( sort keys %emailtmpl) {
-		if (! open (T_F,'<',"$emailtmpl{$tmp}")){ 
+		$body="";
+	if (! open (T_F,'<',"$emailtmpl{$tmp}")){ 
 		return 0;
 		} else {
+			if ($verbose){ print $filehandle "Going to filter template $tmp\n";};
 			$to = <T_F>;
 			$cc = <T_F>;
 			$subject = <T_F>;
 			foreach my $line (<T_F>) {
 				$body=$body . $line;
 			};
+			close (T_F);
 			
 		};
-	if ($verbose){ print $filehandle "Going to filter template\n";};
-	foreach $tmp (sort keys %input_h){
+	if ($verbose){ print $filehandle "Going to filter template $tmp\n";};
+	foreach $tmp (sort keys %input_h){ #filter strings
+		$to=~s/$tmp/$input_h{$tmp}/g;
+		$cc=~s/$tmp/$input_h{$tmp}/g;
 		$subject=~s/$tmp/$input_h{$tmp}/g;
 		$body=~s/$tmp/$input_h{$tmp}/g;
-		if ($verbose){ print $filehandle "filtered field $tmp data $input_h{$tmp}\n";};
+		if ($verbose){ print $filehandle "filtering field $tmp data $input_h{$tmp}\n";};
 		}			
 	my $email=$ol->CreateItem(0);
 	$email->{'To'}= $to;
@@ -130,9 +135,7 @@ sub Button1_Click {
     $ol->{Visible} = 1;
     
 
-    ### insert some text into the document
-    
-	#&generate_emails;
+    #&generate_emails;
 	}
 
 sub Button2_Click { 
@@ -175,7 +178,7 @@ sub readtmpllist {
 			$emailtmpl{$name_}= $descr_;
 			if ($verbose){ print $filehandle "$name_\t| $descr_\n";};
 			#print $filehandle "Set in hash $name_ \= $inidata{$name_}\n";
-			$itemcount++;
+			#$itemcount++;
 			};
 	close(F_F);
 };
