@@ -5,14 +5,14 @@
 <br>
 <h2>GUI - done</h2> 
 <h2>INI - done</h2>
-<h2>Reading input fro file- done</h2>
+<h2>Reading input from file- done</h2>
 <h2>Logging-done</h2>
 <h2>Templates filtering - done</h2>
 <h2>Sending to outlook-done</h2>
 </center>
 <b style="font-size: 10; vertical-align: auto;">
 Hello!<br>
-This is tool for users who need sens alot of emails with constants types for one event.
+This is tool for user who need send alot of emails with constants types for one event.
 <br>
 For example:
 <br>
@@ -43,7 +43,7 @@ StoreNum	Store SAP number<br>
 StorePhone	Store phone number<br>
 StoreAddress	Store full address<br>
 
-<h3>inputdata.ini - holds all real data for all fields, described in fields.ini, not required you can input data manualy in GUI field.</h3><br>
+<h3>inputdata.ini - holds all real data for all fields, described in fields.ini, not required, you can input data manualy in GUI field.</h3><br>
 For example:<br>
 Field < tab > data<br>
 StoreNum	2072<br>
